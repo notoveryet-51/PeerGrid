@@ -46,14 +46,16 @@ const userSchema = new mongoose.Schema(
 
 // GeoJSON 2dsphere index
 userSchema.index({ location: '2dsphere' });
-userSchema.index({ skills: 1, interests: 1 });
+
+// Create separate indexes for parallel arrays instead of a compound index
+userSchema.index({ skills: 1 });
+userSchema.index({ interests: 1 });
 
 // Hash password before saving
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 userSchema.methods.comparePassword = async function (candidatePassword) {
